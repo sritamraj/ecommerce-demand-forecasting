@@ -1,0 +1,6 @@
+scenario,avg_service_level_%,pct_products_below_90pct_SL,total_avg_inventory,total_lost_units,total_units_ordered
+A - Normal demand,80.29,90.0,13048.0,34897.2,145346.0
+B - Demand +10%,76.83,87.5,12278.0,46286.6,149686.0
+C - Demand +20%,72.17,97.5,11535.0,61149.2,154736.0
+D - Reduced capacity (70%),76.21,100.0,12425.0,46582.6,138073.0
+E - Promotion spike,76.08,100.0,12834.0,59299.2,146039.0

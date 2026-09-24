@@ -1,0 +1,5 @@
+,MAE,RMSE,sMAPE_%
+Gradient Boosting,15.788,23.019,20.05
+Random Forest,15.815,22.999,20.06
+Ridge Regression,16.642,23.816,21.14
+Seasonal Naive,23.129,34.249,28.58
