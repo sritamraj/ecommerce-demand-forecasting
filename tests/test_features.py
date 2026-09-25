@@ -90,3 +90,30 @@ def test_feature_columns_are_present_after_feature_engineering():
     featured = add_features(df)
 
     assert set(FEATURE_COLUMNS).issubset(featured.columns)
+
+
+def test_build_panel_does_not_backfill_price_from_future():
+    raw = pd.DataFrame(
+        {
+            "date": pd.to_datetime(
+                ["2025-01-01", "2025-01-02", "2025-01-03"]
+            ),
+            "product_id": ["P1", "P1", "P1"],
+            "category": ["A", "A", "A"],
+            "quantity": [10, 20, 30],
+            "price": [100.0, np.nan, 300.0],
+            "promotion": [0, 0, 0],
+            "discount": [0.0, 0.0, 0.0],
+            "holiday": [0, 0, 0],
+        }
+    )
+
+    panel = build_panel(raw)
+
+    middle_day = panel[
+        (panel["product_id"] == "P1")
+        & (panel["date"] == pd.Timestamp("2025-01-02"))
+    ].iloc[0]
+
+    # A missing price must never be filled using a future price.
+    assert middle_day["price"] != 300.0

@@ -6,9 +6,13 @@ Every feature for date T must be computable using only information
 that existed at or before date T. Lags and rolling windows are
 therefore always shifted by at least 1 day before any window
 aggregation is taken, and calendar features use only the date itself.
+
+Same-day business attributes (price, promotion, discount, holiday)
+are treated as known/planned inputs available at forecast time.
 Never add a feature derived from `quantity` on a date >= the row's
 own date.
 """
+
 import numpy as np
 import pandas as pd
 
@@ -17,10 +21,15 @@ ROLLING_WINDOWS = [7, 14, 28]
 
 
 def build_panel(df: pd.DataFrame) -> pd.DataFrame:
-    """Aggregate to one row per (product_id, date): daily demand + same-day
-    business attributes (price/promotion/discount/holiday), with every
-    product_id x date combination present (missing days filled with 0
-    demand) so lag/rolling windows are computed on a complete calendar."""
+    """Aggregate to one row per (product_id, date).
+
+    Creates a complete product-date calendar so lag and rolling
+    features are computed on a continuous daily timeline.
+
+    Missing demand is treated as zero. Historical business attributes
+    are forward-filled only; future values are never used to fill
+    earlier dates.
+    """
     daily = (
         df.groupby(["product_id", "category", "date"])
         .agg(
@@ -33,41 +42,67 @@ def build_panel(df: pd.DataFrame) -> pd.DataFrame:
         .reset_index()
     )
 
-    full_dates = pd.date_range(daily["date"].min(), daily["date"].max(), freq="D")
+    full_dates = pd.date_range(
+        daily["date"].min(),
+        daily["date"].max(),
+        freq="D",
+    )
+
     panels = []
+
     for pid, g in daily.groupby("product_id"):
         g = g.set_index("date").reindex(full_dates)
+
         g["product_id"] = pid
-        g["category"] = g["category"].ffill().bfill()
+
+        # Forward-fill only: never use future values to populate
+        # earlier dates.
+        g["category"] = g["category"].ffill()
+
+        # Missing calendar days represent zero observed demand.
         g["quantity"] = g["quantity"].fillna(0)
-        g["price"] = g["price"].ffill().bfill()
+
+        # Historical price only; never backfill from the future.
+        g["price"] = g["price"].ffill()
+
         g["promotion"] = g["promotion"].fillna(0)
         g["discount"] = g["discount"].fillna(0)
         g["holiday"] = g["holiday"].fillna(0)
+
         g.index.name = "date"
         panels.append(g.reset_index())
 
     panel = pd.concat(panels, ignore_index=True)
-    return panel.sort_values(["product_id", "date"]).reset_index(drop=True)
+
+    return panel.sort_values(
+        ["product_id", "date"]
+    ).reset_index(drop=True)
 
 
 def add_features(panel: pd.DataFrame) -> pd.DataFrame:
-    """Adds lag, rolling, and calendar features. Operates per-product so
-    one product's history never leaks into another's lag features."""
+    """Add lag, rolling, and calendar features.
+
+    Operations are performed independently per product so one
+    product's history cannot leak into another product's features.
+    """
     out = []
+
     for pid, g in panel.groupby("product_id"):
         g = g.sort_values("date").copy()
 
+        # Historical demand lags.
         for lag in LAGS:
             g[f"lag_{lag}"] = g["quantity"].shift(lag)
 
-        # rolling stats computed on lag_1 (i.e. shifted by 1 day first) so the
-        # window for predicting day T never includes day T's own demand
+        # Rolling statistics use lagged demand, so the current day's
+        # target is never included in its own features.
         shifted = g["quantity"].shift(1)
+
         for w in ROLLING_WINDOWS:
             g[f"rolling_mean_{w}"] = shifted.rolling(w).mean()
             g[f"rolling_std_{w}"] = shifted.rolling(w).std()
 
+        # Calendar features are deterministic from the date itself.
         g["day_of_week"] = g["date"].dt.dayofweek
         g["month"] = g["date"].dt.month
         g["week_of_year"] = g["date"].dt.isocalendar().week.astype(int)
@@ -76,14 +111,26 @@ def add_features(panel: pd.DataFrame) -> pd.DataFrame:
         out.append(g)
 
     result = pd.concat(out, ignore_index=True)
-    return result.sort_values(["product_id", "date"]).reset_index(drop=True)
+
+    return result.sort_values(
+        ["product_id", "date"]
+    ).reset_index(drop=True)
 
 
 FEATURE_COLUMNS = (
     [f"lag_{l}" for l in LAGS]
     + [f"rolling_mean_{w}" for w in ROLLING_WINDOWS]
     + [f"rolling_std_{w}" for w in ROLLING_WINDOWS]
-    + ["day_of_week", "month", "week_of_year", "is_weekend",
-       "price", "promotion", "discount", "holiday"]
+    + [
+        "day_of_week",
+        "month",
+        "week_of_year",
+        "is_weekend",
+        "price",
+        "promotion",
+        "discount",
+        "holiday",
+    ]
 )
+
 TARGET_COLUMN = "quantity"
