@@ -1,0 +1,2 @@
+model,test_start,test_end,test_rows,MAE,RMSE,sMAPE_%
+Gradient Boosting,2025-05-02,2025-06-30,2400,15.759,22.973,20.01

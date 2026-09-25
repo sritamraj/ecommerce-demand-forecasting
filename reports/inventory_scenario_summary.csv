@@ -1,6 +1,6 @@
-scenario,avg_service_level_%,pct_products_below_90pct_SL,total_avg_inventory,total_lost_units,total_units_ordered
-A - Normal demand,80.29,90.0,13048.0,34897.2,145346.0
-B - Demand +10%,76.83,87.5,12278.0,46286.6,149686.0
-C - Demand +20%,72.17,97.5,11535.0,61149.2,154736.0
-D - Reduced capacity (70%),76.21,100.0,12425.0,46582.6,138073.0
-E - Promotion spike,76.08,100.0,12834.0,59299.2,146039.0
+scenario,products,test_days,lead_time_days,review_period_days,protection_period_days,service_level_z,capacity_fraction,mean_product_cycle_service_level_%,products_below_90pct_service,products_below_95pct_service,total_lost_units,total_units_ordered,total_average_inventory
+A - Normal demand,40,60,3,7,10,1.65,,99.25,0,0,699.6,187627.4,16841.1
+B - Demand +10%,40,60,3,7,10,1.65,,96.87,0,6,3672.1,203487.6,15271.9
+C - Demand +20%,40,60,3,7,10,1.65,,94.0,0,25,10641.8,215498.8,14222.5
+D - Unexpected 3x five-day spike,40,60,3,7,10,1.65,,90.33,11,39,25225.1,194145.9,16075.6
+E - Inventory capacity at 70% of target,40,60,3,7,10,1.65,0.7,84.92,36,39,25405.9,164365.7,9101.0

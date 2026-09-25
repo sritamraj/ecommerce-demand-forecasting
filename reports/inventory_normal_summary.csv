@@ -1,0 +1,2 @@
+scenario,products,test_days,lead_time_days,review_period_days,protection_period_days,service_level_z,mean_product_cycle_service_level_%,products_below_90pct_service,products_below_95pct_service,total_lost_units,total_units_ordered,total_average_inventory,mean_safety_stock,mean_oof_error_std
+A - Normal demand,40,60,3,7,10,1.65,99.25,0,0,699.6,187627.4,16841.1,102.6,19.65
