@@ -126,4 +126,3 @@ product_id  avg_daily_prior_90d  avg_daily_recent_90d  change  pct_change
       P026               128.14                122.67   -5.48       -4.27
       P021                92.26                 88.48   -3.78       -4.09
       P009               113.00                109.39   -3.61       -3.20
-

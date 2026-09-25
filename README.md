@@ -1214,6 +1214,26 @@ pip install -r requirements.txt
 
 
 
+Run the automated test suite:
+
+
+
+```bash
+python -m pytest -q
+```
+
+
+
+Run the complete reproducibility and quality audit:
+
+
+
+```bash
+python run_project_audit.py
+```
+
+
+
 Generate the synthetic dataset:
 
 
@@ -1309,6 +1329,11 @@ ecommerce-demand-forecasting/
 ├── README.md
 
 ├── requirements.txt
+├── run_project_audit.py
+├── tests/
+│   ├── test_features.py
+│   ├── test_forecasting.py
+│   └── test_inventory_simulation.py
 
 ├── data/
 
