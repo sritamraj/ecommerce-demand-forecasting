@@ -46,8 +46,20 @@ GROUP BY category
 ORDER BY total_revenue DESC;
 
 
--- Q4. Which products have the most volatile demand?
--- (coefficient of variation = stdev / mean of daily units, higher = more volatile)
+
+-- Q5. What is average daily demand by product?
+SELECT
+    product_id,
+    category,
+    ROUND(AVG(quantity), 2)                AS avg_daily_units,
+    MIN(quantity)                          AS min_daily_units,
+    MAX(quantity)                          AS max_daily_units
+FROM sales
+GROUP BY product_id, category
+ORDER BY avg_daily_units DESC
+LIMIT 15;
+-- Q4. Which products have the highest demand variance?
+-- (variance of daily units, higher = greater absolute demand variability)
 SELECT
     product_id,
     category,
@@ -62,20 +74,6 @@ FROM sales
 GROUP BY product_id, category
 ORDER BY variance_daily_units DESC
 LIMIT 10;
-
-
--- Q5. What is average daily demand by product?
-SELECT
-    product_id,
-    category,
-    ROUND(AVG(quantity), 2)                AS avg_daily_units,
-    MIN(quantity)                          AS min_daily_units,
-    MAX(quantity)                          AS max_daily_units
-FROM sales
-GROUP BY product_id, category
-ORDER BY avg_daily_units DESC
-LIMIT 15;
-
 
 -- Q6. What is the monthly growth rate (month-over-month, total units)?
 WITH monthly AS (

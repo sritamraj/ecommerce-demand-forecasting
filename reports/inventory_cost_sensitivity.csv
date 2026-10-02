@@ -1,0 +1,4 @@
+z_score,products,test_days,lead_time_days,review_period_days,protection_period_days,mean_product_cycle_service_level_%,products_below_90pct_service,products_below_95pct_service,total_lost_units,total_units_ordered,total_average_inventory,mean_safety_stock,mean_reorder_point,holding_cost,stockout_cost,ordering_cost,total_cost
+1.28,40,60,3,7,10,98.87,0,0,1117.3,187209.7,15977.4,79.6,888.0,958644.0,22346.0,18720.97,999710.97
+1.65,40,60,3,7,10,99.25,0,0,699.6,187627.4,16841.1,102.6,911.0,1010466.0,13992.0,18762.74,1043220.74
+2.05,40,60,3,7,10,99.46,0,0,404.5,187922.5,17795.9,127.4,935.9,1067754.0,8090.0,18792.25,1094636.25

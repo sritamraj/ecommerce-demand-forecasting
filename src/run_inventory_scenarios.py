@@ -18,6 +18,14 @@ TEST_PATH = "reports/final_test_predictions.csv"
 PRODUCT_OUTPUT = "reports/inventory_scenario_by_product.csv"
 SUMMARY_OUTPUT = "reports/inventory_scenario_summary.csv"
 
+SENSITIVITY_PRODUCT_OUTPUT = (
+    "reports/inventory_z_sensitivity_by_product.csv"
+)
+
+SENSITIVITY_SUMMARY_OUTPUT = (
+    "reports/inventory_z_sensitivity_summary.csv"
+)
+
 
 def load_inputs():
     oof = pd.read_csv(
@@ -190,6 +198,149 @@ def summarize(
     }
 
 
+def run_z_sensitivity(
+    test,
+    error_stats,
+    z_values,
+):
+    product_rows = []
+    summary_rows = []
+
+    for z in z_values:
+
+        print()
+        print(
+            f"Running safety-stock sensitivity: z={z}"
+        )
+
+        rows = []
+
+        for product_id, group in test.groupby(
+            "product_id"
+        ):
+
+            stats = error_stats[
+                error_stats["product_id"]
+                == product_id
+            ]
+
+            if len(stats) != 1:
+                raise ValueError(
+                    f"Expected one uncertainty estimate "
+                    f"for {product_id}."
+                )
+
+            error_std = float(
+                stats["error_std"].iloc[0]
+            )
+
+            d = (
+                group
+                .copy()
+                .sort_values("date")
+                .reset_index(drop=True)
+            )
+
+            result = simulate_inventory(
+                d,
+                error_std=error_std,
+                demand_multiplier=1.0,
+                capacity_fraction=None,
+                z=z,
+            )
+
+            result["product_id"] = product_id
+            result["z_score"] = z
+            result["oof_error_std"] = error_std
+
+            rows.append(result)
+
+        product_result = (
+            pd.DataFrame(rows)
+            .sort_values("product_id")
+            .reset_index(drop=True)
+        )
+
+        product_rows.append(product_result)
+
+        summary_rows.append(
+            {
+                "z_score": z,
+                "products": int(
+                    product_result[
+                        "product_id"
+                    ].nunique()
+                ),
+                "test_days": 60,
+                "lead_time_days": LEAD_TIME_DAYS,
+                "review_period_days": REVIEW_PERIOD_DAYS,
+                "protection_period_days": (
+                    LEAD_TIME_DAYS
+                    + REVIEW_PERIOD_DAYS
+                ),
+                "mean_product_cycle_service_level_%":
+                    round(
+                        product_result[
+                            "cycle_service_level_%"
+                        ].mean(),
+                        2,
+                    ),
+                "products_below_90pct_service": int(
+                    (
+                        product_result[
+                            "cycle_service_level_%"
+                        ] < 90
+                    ).sum()
+                ),
+                "products_below_95pct_service": int(
+                    (
+                        product_result[
+                            "cycle_service_level_%"
+                        ] < 95
+                    ).sum()
+                ),
+                "total_lost_units": round(
+                    product_result[
+                        "lost_units"
+                    ].sum(),
+                    1,
+                ),
+                "total_units_ordered": round(
+                    product_result[
+                        "total_units_ordered"
+                    ].sum(),
+                    1,
+                ),
+                "total_average_inventory": round(
+                    product_result[
+                        "avg_inventory"
+                    ].sum(),
+                    1,
+                ),
+                "mean_safety_stock": round(
+                    product_result[
+                        "safety_stock"
+                    ].mean(),
+                    1,
+                ),
+                "mean_reorder_point": round(
+                    product_result[
+                        "reorder_point"
+                    ].mean(),
+                    1,
+                ),
+            }
+        )
+
+    return (
+        pd.concat(
+            product_rows,
+            ignore_index=True,
+        ),
+        pd.DataFrame(summary_rows),
+    )
+
+
 def main():
 
     print("=" * 70)
@@ -305,9 +456,69 @@ def main():
         ].to_string(index=False)
     )
 
+    # ---------------------------------------------------------------
+    # Safety-stock z-score sensitivity
+    # ---------------------------------------------------------------
+
+    print()
+    print("=" * 70)
+    print("SAFETY-STOCK Z-SCORE SENSITIVITY")
+    print("=" * 70)
+
+    z_values = [
+        1.28,
+        1.65,
+        2.05,
+    ]
+
+    (
+        sensitivity_product,
+        sensitivity_summary,
+    ) = run_z_sensitivity(
+        test,
+        error_stats,
+        z_values,
+    )
+
+    sensitivity_product.to_csv(
+        SENSITIVITY_PRODUCT_OUTPUT,
+        index=False,
+    )
+
+    sensitivity_summary.to_csv(
+        SENSITIVITY_SUMMARY_OUTPUT,
+        index=False,
+    )
+
+    print()
+    print("Z-SCORE SENSITIVITY SUMMARY")
+    print("-" * 70)
+
+    print(
+        sensitivity_summary[
+            [
+                "z_score",
+                "mean_product_cycle_service_level_%",
+                "products_below_90pct_service",
+                "products_below_95pct_service",
+                "total_lost_units",
+                "total_units_ordered",
+                "total_average_inventory",
+                "mean_safety_stock",
+                "mean_reorder_point",
+            ]
+        ].to_string(index=False)
+    )
+
     print()
     print(f"Saved: {PRODUCT_OUTPUT}")
     print(f"Saved: {SUMMARY_OUTPUT}")
+    print(
+        f"Saved: {SENSITIVITY_PRODUCT_OUTPUT}"
+    )
+    print(
+        f"Saved: {SENSITIVITY_SUMMARY_OUTPUT}"
+    )
 
 
 if __name__ == "__main__":
