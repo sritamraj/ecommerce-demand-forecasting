@@ -58,6 +58,22 @@ STAGES = [
         [sys.executable, "src/inventory_cost_analysis.py"],
     ),
     (
+        "PUBLIC BENCHMARK EVALUATION",
+        [sys.executable, "src/prepare_public_benchmark.py"],
+    ),
+    (
+        "PUBLIC BENCHMARK MODEL EVALUATION",
+        [sys.executable, "src/run_public_benchmark.py"],
+    ),
+    (
+        "FORECAST UNCERTAINTY ANALYSIS",
+        [sys.executable, "src/forecast_uncertainty.py"],
+    ),
+    (
+        "FORECAST MONITORING",
+        [sys.executable, "src/monitoring.py"],
+    ),
+    (
         "AUTOMATED TESTS",
         [sys.executable, "-m", "pytest", "-q"],
     ),
@@ -97,6 +113,21 @@ REQUIRED_ARTIFACTS = [
     "reports/forecast_error_by_category.csv",
     "reports/forecast_error_by_condition.csv",
     "reports/final_test_predictions_with_error_analysis.csv",
+
+    # Public benchmark
+    "data/benchmark/benchmark_series.csv",
+    "data/benchmark/public_benchmark_daily.csv",
+    "reports/benchmark/benchmark_cv_results.csv",
+    "reports/benchmark/benchmark_final_results.csv",
+    "reports/benchmark/benchmark_final_predictions.csv",
+
+    # Forecast uncertainty
+    "reports/uncertainty/forecast_uncertainty_results.csv",
+    "reports/uncertainty/forecast_predictions_with_intervals.csv",
+
+    # Monitoring
+    "reports/monitoring/forecast_monitoring_report.csv",
+    "reports/monitoring/monitoring_summary.txt",
 
     # Production inference
     "models/gradient_boosting_demand_model.joblib",
@@ -259,6 +290,9 @@ def main():
     print("INVENTORY SCENARIOS:            PASS")
     print("DEMAND DRIVER ANALYSIS:         PASS")
     print("INVENTORY COST ANALYSIS:        PASS")
+    print("PUBLIC BENCHMARK:               PASS")
+    print("FORECAST UNCERTAINTY:           PASS")
+    print("FORECAST MONITORING:            PASS")
     print("AUTOMATED TESTS:                PASS")
     print("ARTIFACT INTEGRITY:             PASS")
     print()

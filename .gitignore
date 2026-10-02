@@ -10,3 +10,4 @@ venv/
 *.log
 .coverage
 htmlcov/
+data/benchmark/raw/

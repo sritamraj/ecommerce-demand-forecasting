@@ -1,0 +1,3 @@
+model,confidence_level_%,calibration_source,interval_width,final_holdout_coverage_%,mean_interval_width,final_holdout_MAE,final_holdout_rows
+Seasonal Naive,90.0,historical time-series CV,1.9008143618184383,86.60714285714286,2.393368395519766,0.6934523809523809,1008
+Gradient Boosting,90.0,historical time-series CV,1.2540443211819077,91.07142857142857,1.7239521752061098,0.6016251255322833,1008
